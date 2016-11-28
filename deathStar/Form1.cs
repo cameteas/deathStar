@@ -5,6 +5,7 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -30,7 +31,13 @@ namespace deathStar
         bool hit;
         bool miss;
 
-        bool bounce;
+        bool bounce = false;
+        bool hitfall = false;
+
+        bool reactor = false;
+        bool bottomTouch = false;
+        bool floorBreak = false;
+        bool detonate;
 
         int drawX = 900;
         int drawY = 300;
@@ -42,10 +49,14 @@ namespace deathStar
 
         int entranceHoleX = 0;
         int entranceHoleY = 400;
+        int entranceHoleBottom = 600;
         int trenchBottomY = 400;
 
-        string words;
+        int bounceNum = 0;
+        int slowFall = 5;
+        int bombwait = 0;
 
+        string words;
 
         public Form1()
         {
@@ -238,17 +249,84 @@ namespace deathStar
             {
                 fall = false;
             }
+            if (bounceNum > 4)
+            {
+                reactor = true;
+                hit = false;
+            }
 
             if (hit)
             {
+                start = false;
+                approach = false;
                 trenchBottomY = trenchBottomY - 10;
                 entranceHoleY = entranceHoleY - 10;
                 drawY = drawY - 10;
                 drawX = drawX + 2;
-                if (bombX == entranceHoleX - 100)
+                if (bounce == false && hitfall == false)
                 {
-                    bounce = true;
+                    hitfall = true;
                 }
+                if (bombX < entranceHoleX - 100)
+                {
+                    hitfall = false;
+                    bounce = true;
+                    bounceNum++;
+                    slowFall--;
+                }
+                else if (bombX > entranceHoleX - 10)
+                {
+                    hitfall = true;
+                    bounce = false;
+                    bounceNum++;
+                    slowFall--;
+                }
+                
+                if (bounce){
+                    entranceHoleX = entranceHoleX - slowFall;
+                    
+
+                }
+                 if (hitfall)
+                {
+                    entranceHoleX = entranceHoleX + slowFall;
+                }
+            }
+            #endregion
+            #region reactor
+            if (reactor)
+            {
+                
+                if (bottomTouch == false)
+                {
+                    entranceHoleBottom = entranceHoleBottom - 10;
+                    bombX++;
+                        if (bombY + 15 > entranceHoleBottom)
+                    {
+                        bottomTouch = true;
+                        floorBreak = true;
+                    }
+                }
+                if (bottomTouch)
+                {
+                    if (floorBreak)
+                    {
+                        for(int i = 0; i < 10; i++)
+                        {
+                            entranceHoleBottom = entranceHoleBottom - i;
+                            Thread.Sleep(5);
+                            Refresh();
+                            floorBreak = false;
+                        }
+                    }
+                    
+                    bombwait++;
+                    if(bombwait == 30)
+                    {
+                        reactor = false;
+                    }
+                }
+                
             }
             #endregion
             Refresh();
@@ -277,7 +355,7 @@ namespace deathStar
             e.Graphics.DrawLine(medPen, drawX, drawY + 30, drawX , drawY);
 
             //drawing the bomb
-            if (fall || hit)
+            if (fall || hit || reactor)
             {
                 e.Graphics.DrawEllipse(medPen, bombX, bombY, 10, 10);
             }
@@ -290,8 +368,11 @@ namespace deathStar
             e.Graphics.DrawLine(holePen, entranceHoleX, entranceHoleY, entranceHoleX - 100, entranceHoleY);
 
             //drawing vent wall
-            e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleY, entranceHoleX, 600);
-            e.Graphics.DrawLine(medPen, entranceHoleX - 100, entranceHoleY, entranceHoleX - 100, 600);
+            e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleY, entranceHoleX, entranceHoleBottom);
+            e.Graphics.DrawLine(medPen, entranceHoleX - 100, entranceHoleY, entranceHoleX - 100, entranceHoleBottom);
+
+            //reactor
+                e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleBottom, entranceHoleX - 100, entranceHoleBottom);
 
             DoubleBuffered = true;
         }
