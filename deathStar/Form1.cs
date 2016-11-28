@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Text;
@@ -33,6 +34,7 @@ namespace deathStar
 
         bool bounce = false;
         bool hitfall = false;
+        bool stopbouncing = false;
 
         bool reactor = false;
         bool bottomTouch = false;
@@ -56,8 +58,13 @@ namespace deathStar
         int slowFall = 5;
         int bombwait = 0;
 
+
+        int ventSize = 25;
+        int speed = 5;
+        int fallTime = 0;
         string words;
 
+        Stopwatch incoming = new Stopwatch();
         public Form1()
         {
             InitializeComponent();
@@ -129,7 +136,7 @@ namespace deathStar
             }
             if (rightArrowDown)
             {
-                drawX++;
+                drawX = drawX + 5;
             }
             if (upArrowDown)
             {
@@ -151,12 +158,18 @@ namespace deathStar
             if (start)
             {
                 words = "You Luke Skywalker are preparing for your attack on the death star, Use this simulator to practice your bomb dropping skills";
-                approach = true;
+                incoming.Start();
+                label2.Text = incoming.ElapsedMilliseconds + " ";
+                if (incoming.ElapsedMilliseconds > 5000)
+                {
+                    approach = true;
+                }
+                
             }
             if (approach)
             {
-                entranceHoleX++;
-                if (entranceHoleX == 1020)
+                entranceHoleX = entranceHoleX + speed;
+                if (entranceHoleX > 1020)
                 {
                     approach = false;
                 }
@@ -236,12 +249,12 @@ namespace deathStar
             #endregion
             #region check Hit
 
-            if (bombY + 5 > 400 && bombX <= entranceHoleX && bombX >= entranceHoleX - 100)
+            if (bombY + 5 > 400 && bombX <= entranceHoleX && bombX >= entranceHoleX - ventSize)
             {
                 fall = false;
                 hit = true;
             }
-            else if (bombY + 5 > 400 && bombX < entranceHoleX - 100)
+            else if (bombY + 5 > 400 && bombX < entranceHoleX - ventSize)
             {
                 fall = false;
             }
@@ -251,8 +264,20 @@ namespace deathStar
             }
             if (bounceNum > 4)
             {
-                reactor = true;
-                hit = false;
+                
+                if(bombX > entranceHoleX + ventSize/2)
+                {
+                    fallTime++;
+                }
+                else
+                {
+                    bombX++;
+                }
+                if (fallTime > 30)
+                {
+                    reactor = true;
+                    hit = false;
+                }
             }
 
             if (hit)
@@ -263,34 +288,38 @@ namespace deathStar
                 entranceHoleY = entranceHoleY - 10;
                 drawY = drawY - 10;
                 drawX = drawX + 2;
-                if (bounce == false && hitfall == false)
-                {
-                    hitfall = true;
-                }
-                if (bombX < entranceHoleX - 100)
-                {
-                    hitfall = false;
-                    bounce = true;
-                    bounceNum++;
-                    slowFall--;
-                }
-                else if (bombX > entranceHoleX - 10)
-                {
-                    hitfall = true;
-                    bounce = false;
-                    bounceNum++;
-                    slowFall--;
-                }
-                
-                if (bounce){
-                    entranceHoleX = entranceHoleX - slowFall;
-                    
+                //    if (stopbouncing != true)
+                //    {
+                //        if (bounce == false && hitfall == false)
+                //        {
+                //            hitfall = true;
+                //        }
+                //        if (bombX < entranceHoleX - ventSize)
+                //        {
+                //            hitfall = false;
+                //            bounce = true;
+                //            bounceNum++;
+                //            slowFall--;
+                //        }
+                //        else if (bombX > entranceHoleX - 10)
+                //        {
+                //            hitfall = true;
+                //            bounce = false;
+                //            bounceNum++;
+                //            slowFall--;
+                //        }
 
-                }
-                 if (hitfall)
-                {
-                    entranceHoleX = entranceHoleX + slowFall;
-                }
+                //        if (bounce){
+                //            entranceHoleX = entranceHoleX - slowFall;
+
+
+                //        }
+                //         if (hitfall)
+                //        {
+                //            entranceHoleX = entranceHoleX + slowFall;
+                //        }
+                //    }
+
             }
             #endregion
             #region reactor
@@ -365,14 +394,14 @@ namespace deathStar
             
 
             //drawing vent to core
-            e.Graphics.DrawLine(holePen, entranceHoleX, entranceHoleY, entranceHoleX - 100, entranceHoleY);
+            e.Graphics.DrawLine(holePen, entranceHoleX, entranceHoleY, entranceHoleX - ventSize, entranceHoleY);
 
             //drawing vent wall
             e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleY, entranceHoleX, entranceHoleBottom);
-            e.Graphics.DrawLine(medPen, entranceHoleX - 100, entranceHoleY, entranceHoleX - 100, entranceHoleBottom);
+            e.Graphics.DrawLine(medPen, entranceHoleX - ventSize, entranceHoleY, entranceHoleX - ventSize, entranceHoleBottom);
 
             //reactor
-                e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleBottom, entranceHoleX - 100, entranceHoleBottom);
+                e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleBottom, entranceHoleX - ventSize, entranceHoleBottom);
 
             DoubleBuffered = true;
         }
