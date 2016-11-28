@@ -12,6 +12,7 @@ namespace deathStar
 {
     public partial class Form1 : Form
     {
+        //change for first commit
         //Declaring Global Variables
 
         bool leftArrowDown;
