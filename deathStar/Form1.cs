@@ -30,6 +30,8 @@ namespace deathStar
         bool hit;
         bool miss;
 
+        bool bounce;
+
         int drawX = 900;
         int drawY = 300;
 
@@ -140,6 +142,14 @@ namespace deathStar
                 words = "You Luke Skywalker are preparing for your attack on the death star, Use this simulator to practice your bomb dropping skills";
                 approach = true;
             }
+            if (approach)
+            {
+                entranceHoleX++;
+                if (entranceHoleX == 1020)
+                {
+                    approach = false;
+                }
+            }
             #region Bomb_Dropping
 
             if (launch)
@@ -214,35 +224,36 @@ namespace deathStar
             }
             #endregion
             #region check Hit
-            if (bombY + 5 == 400 && bombX <= entranceHoleX && bombX >= entranceHoleX - 100)
+
+            if (bombY + 5 > 400 && bombX <= entranceHoleX && bombX >= entranceHoleX - 100)
             {
                 fall = false;
                 hit = true;
             }
-
-            if (approach)
+            else if (bombY + 5 > 400 && bombX < entranceHoleX - 100)
             {
-                entranceHoleX++;
-                if (entranceHoleX == 1020)
-                {
-                    approach = false;
-                }
+                fall = false;
+            }
+            else if (bombY + 5 > 400 && bombX > entranceHoleX)
+            {
+                fall = false;
             }
 
             if (hit)
             {
                 trenchBottomY = trenchBottomY - 10;
                 entranceHoleY = entranceHoleY - 10;
-                bombX = entranceHoleX - 20;
-                bombY = 400;
-            }
-            if(bombY + 5 == 400 && bombX < entranceHoleX - 100 || bombY + 5 == 400 && bombX > entranceHoleX)
-            {
-                fall = false;
+                drawY = drawY - 10;
+                drawX = drawX + 2;
+                if (bombX == entranceHoleX - 100)
+                {
+                    bounce = true;
+                }
             }
             #endregion
             Refresh();
         }
+        
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
             SolidBrush drawBrush = new SolidBrush(Color.Black);
