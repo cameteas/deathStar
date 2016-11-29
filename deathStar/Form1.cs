@@ -14,15 +14,16 @@ namespace deathStar
 {
     public partial class Form1 : Form
     {
-        //change for first commit
-        //Declaring Global Variables
+        
 
+        //Declaring Global Variables
         bool leftArrowDown;
         bool downArrowDown;
         bool rightArrowDown;
         bool upArrowDown;
         bool spaceDown;
 
+        bool title = true;
         bool start;
         bool launch;
         bool fall;
@@ -40,6 +41,10 @@ namespace deathStar
         bool bottomTouch = false;
         bool floorBreak = false;
         bool detonate;
+        bool boom = false;
+
+        bool win = false;
+        bool lose = false;
 
         int drawX = 900;
         int drawY = 300;
@@ -59,19 +64,32 @@ namespace deathStar
         int bombwait = 0;
 
 
-        int ventSize = 25;
+        int ventSize = 100;
         int speed = 5;
         int fallTime = 0;
+
+        int explosionSize = 0;
+        int explosionX = 350;
+        int explosionY = 150;
+        int explosionCounter = 0;
         string words;
 
         Stopwatch incoming = new Stopwatch();
+        Stopwatch fallWatch = new Stopwatch();
         public Form1()
         {
             InitializeComponent();
             start = true;
-         
-        }
 
+        }
+        private void playButton_Click(object sender, EventArgs e)
+        {
+            start = true;
+            title = false;
+            playButton.Visible = false;
+            
+        }
+       
         private void Form1_Load(object sender, EventArgs e)
         {
 
@@ -155,14 +173,18 @@ namespace deathStar
                 }
             }
             #endregion
-            if (start)
+            if (title)
             {
                 words = "You Luke Skywalker are preparing for your attack on the death star, Use this simulator to practice your bomb dropping skills";
+            }
+            if (start)
+            {
+                
                 incoming.Start();
                 label2.Text = incoming.ElapsedMilliseconds + " ";
                 if (incoming.ElapsedMilliseconds > 5000)
-                {
-                    approach = true;
+                {                    approach = true;
+
                 }
                 
             }
@@ -253,8 +275,7 @@ namespace deathStar
             {
                 fall = false;
                 hit = true;
-                incoming.Reset();
-                incoming.Start();
+                fallWatch.Start();
             }
             else if (bombY + 5 > 400 && bombX < entranceHoleX - ventSize)
             {
@@ -263,23 +284,6 @@ namespace deathStar
             else if (bombY + 5 > 400 && bombX > entranceHoleX)
             {
                 fall = false;
-            }
-            if (bounceNum > 4)
-            {
-                
-                if(bombX > entranceHoleX + ventSize/2)
-                {
-                    fallTime++;
-                }
-                else
-                {
-                    bombX++;
-                }
-                if (fallTime > 30)
-                {
-                    reactor = true;
-                    hit = false;
-                }
             }
 
             if (hit)
@@ -291,9 +295,10 @@ namespace deathStar
                 entranceHoleY = entranceHoleY - 10;
                 drawY = drawY - 10;
                 drawX = drawX + 2;
-                label2.Text = incoming.ElapsedMilliseconds + " ";
-                if (incoming.ElapsedMilliseconds == 5000)
+                label2.Text = fallWatch.ElapsedMilliseconds + " ";
+                if (fallWatch.ElapsedMilliseconds > 5000)
                 {
+                    fallWatch.Stop();
                     hit = false;
                     reactor = true;
                 }
@@ -338,8 +343,7 @@ namespace deathStar
                 if (bottomTouch == false)
                 {
                     entranceHoleBottom = entranceHoleBottom - 10;
-                    bombX++;
-                        if (bombY + 15 > entranceHoleBottom)
+                        if (bombY + 10 > entranceHoleBottom + 100)
                     {
                         bottomTouch = true;
                         floorBreak = true;
@@ -347,24 +351,42 @@ namespace deathStar
                 }
                 if (bottomTouch)
                 {
-                    if (floorBreak)
-                    {
-                        for(int i = 0; i < 10; i++)
-                        {
-                            entranceHoleBottom = entranceHoleBottom - i;
-                            Thread.Sleep(5);
-                            Refresh();
-                            floorBreak = false;
-                        }
-                    }
-                    
-                    bombwait++;
-                    if(bombwait == 30)
-                    {
-                        reactor = false;
-                    }
+                    detonate = true;
+                    bottomTouch = false;
+                    entranceHoleBottom = - 500;
+                    bombX = 20000;
                 }
                 
+            }
+
+            if (detonate)
+            {
+                
+                if (spaceDown)
+                {
+                    boom = true;
+                }
+            }
+
+            if (boom)
+            {
+                explosionSize++;
+                if(explosionCounter == 1)
+                {
+                    explosionX = explosionX - 1;
+                    explosionY = explosionY - 1;
+                    explosionCounter = 0;
+                }
+                else
+                {
+                    explosionCounter = 1;
+                }
+
+                if (explosionSize > 300)
+                {
+                    boom = false;
+                    win = true;
+                }
             }
             #endregion
             Refresh();
@@ -372,15 +394,16 @@ namespace deathStar
         
         private void Form1_Paint(object sender, PaintEventArgs e)
         {
-            SolidBrush drawBrush = new SolidBrush(Color.Black);
-            Pen thickPen = new Pen(Color.Black, 4);
-            Pen medPen = new Pen(Color.Black, 3);
-            Pen thinPen = new Pen(Color.Black, 2);
-            Pen holePen = new Pen(Color.White, 3);
+            SolidBrush drawBrush = new SolidBrush(Color.Lime);
+            SolidBrush explosionBrush = new SolidBrush(Color.Black);
+            Pen thickPen = new Pen(Color.Lime, 4);
+            Pen medPen = new Pen(Color.Lime, 3);
+            Pen thinPen = new Pen(Color.Lime, 2);
+            Pen holePen = new Pen(Color.Black, 3);
             Font wordFont = new Font("Arial", 10);
 
             //print words
-            e.Graphics.DrawString(words, wordFont, drawBrush, 0, 0);
+            e.Graphics.DrawString(words, wordFont, drawBrush, 100, 100);
 
             //drawing the scene
             e.Graphics.DrawLine(thinPen, 0, trenchBottomY - 310, 1000, trenchBottomY - 310);
@@ -410,11 +433,35 @@ namespace deathStar
             e.Graphics.DrawLine(medPen, entranceHoleX - ventSize, entranceHoleY, entranceHoleX - ventSize, entranceHoleBottom);
 
             //reactor
-                e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleBottom, entranceHoleX - ventSize, entranceHoleBottom);
+            if (reactor)
+            {
+                e.Graphics.DrawArc(medPen, entranceHoleX - 150, entranceHoleBottom - 15, 200, 200, 300, 300);
+            }
+
+            //death star
+            if(detonate)
+            {
+                e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
+                e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
+            }
+            if (boom)
+            {
+                e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
+                e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
+                
+                e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize -3 );
+                e.Graphics.DrawEllipse(medPen, explosionX, explosionY, explosionSize, explosionSize);
+            }
+            if (win)
+            {
+                e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize - 3);
+                e.Graphics.DrawString("You Win", wordFont, drawBrush, 100, 100);
+            }
+                
 
             DoubleBuffered = true;
         }
 
-
+        
     }
 }
