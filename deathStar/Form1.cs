@@ -249,10 +249,12 @@ namespace deathStar
             #endregion
             #region check Hit
 
-            if (bombY + 5 > 400 && bombX <= entranceHoleX && bombX >= entranceHoleX - ventSize)
+            if (bombY + 10 > 400 && bombY + 10 < 411 && bombX + 10 <= entranceHoleX && bombX >= entranceHoleX - ventSize)
             {
                 fall = false;
                 hit = true;
+                incoming.Reset();
+                incoming.Start();
             }
             else if (bombY + 5 > 400 && bombX < entranceHoleX - ventSize)
             {
@@ -284,10 +286,17 @@ namespace deathStar
             {
                 start = false;
                 approach = false;
+                
                 trenchBottomY = trenchBottomY - 10;
                 entranceHoleY = entranceHoleY - 10;
                 drawY = drawY - 10;
                 drawX = drawX + 2;
+                label2.Text = incoming.ElapsedMilliseconds + " ";
+                if (incoming.ElapsedMilliseconds == 5000)
+                {
+                    hit = false;
+                    reactor = true;
+                }
                 //    if (stopbouncing != true)
                 //    {
                 //        if (bounce == false && hitfall == false)
