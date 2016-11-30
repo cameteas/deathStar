@@ -14,7 +14,7 @@ namespace deathStar
 {
     public partial class Form1 : Form
     {
-        //a
+        //Cameron Teasdale, Bomb Dropping Game, Nov 29 2016
 
         //Declaring Global Variables
         bool leftArrowDown;
@@ -27,19 +27,14 @@ namespace deathStar
         bool start;
         bool launch;
         bool fall;
-        bool reloading;
+        bool bombReady = true;
         bool approach;
 
         bool hit;
-        bool miss;
 
-        bool bounce = false;
-        bool hitfall = false;
-        bool stopbouncing = false;
 
         bool reactor = false;
         bool bottomTouch = false;
-        bool floorBreak = false;
         bool detonate;
         bool boom = false;
 
@@ -52,7 +47,7 @@ namespace deathStar
         int bombX;
         int bombY;
         int stage = 0;
-        int bombsLeft = 5;
+        int bombsLeft = 2;
 
         int entranceHoleX = 0;
         int entranceHoleY = 400;
@@ -73,23 +68,42 @@ namespace deathStar
         int explosionY = 150;
         int explosionCounter = 0;
         string words;
+        string titleName;
 
         Stopwatch incoming = new Stopwatch();
         Stopwatch fallWatch = new Stopwatch();
         public Form1()
         {
             InitializeComponent();
-            start = true;
 
         }
         private void playButton_Click(object sender, EventArgs e)
         {
-            start = true;
-            title = false;
-            playButton.Visible = false;
+            if (title)
+            {
+                start = true;
+                win = false;
+                lose = false;
+                title = false;
+                playButton.Enabled = false;
+                playButton.Visible = false;
+                closeButton.Enabled = false;
+                closeButton.Visible = false;
+                timer1.Enabled = true;
+                words = " ";
+            }
+            if (win || lose)
+            {
+                Application.Restart();
+            }
+            
             
         }
-       
+
+       private void closeButton_Click(object sender, EventArgs e)
+        {
+            this.Close();
+        }
         private void Form1_Load(object sender, EventArgs e)
         {
 
@@ -112,6 +126,7 @@ namespace deathStar
                     break;
                 case Keys.Space:
                     spaceDown = true;
+                    bombReady = true;
                     break;
                 default:
                     break;
@@ -146,19 +161,19 @@ namespace deathStar
             #region key_controls
             if (leftArrowDown)
             {
-                drawX--;
+                drawX = drawX - 5;
             }
             if (downArrowDown)
             {
-                drawY = drawY + 2;
+                drawY = drawY + 5;
             }
             if (rightArrowDown)
             {
-                drawX = drawX + 5;
+                drawX = drawX + 8;
             }
             if (upArrowDown)
             {
-                drawY = drawY - 2;
+                drawY = drawY - 5;
             }
             if (spaceDown)
             {
@@ -175,18 +190,23 @@ namespace deathStar
             #endregion
             if (title)
             {
-                words = "You Luke Skywalker are preparing for your attack on the death star, Use this simulator to practice your bomb dropping skills";
+                titleName = "Space Bomber";
+                words = "You Luke Skywalker are preparing for your attack on the death star, Use this simulator to practice your\n bomb dropping skills";
             }
             if (start)
             {
                 
                 incoming.Start();
-                label2.Text = incoming.ElapsedMilliseconds + " ";
                 if (incoming.ElapsedMilliseconds > 5000)
-                {                    approach = true;
-
+                {
+                    approach = true;
                 }
                 
+            }
+            if (bombReady)
+            {
+                bombX = 0;
+                bombY = -30;
             }
             if (approach)
             {
@@ -194,6 +214,7 @@ namespace deathStar
                 if (entranceHoleX > 1020)
                 {
                     approach = false;
+                    lose = true;
                 }
             }
             #region Bomb_Dropping
@@ -206,7 +227,7 @@ namespace deathStar
                 stage = 0;
                 launch = false;
                 fall = true;
-                reloading = true;
+                bombReady = false;
                 
             }
             else if (fall)
@@ -217,7 +238,6 @@ namespace deathStar
                     bombX = bombX - 10;
                     bombY = bombY + 2;
                     stage++;
-                    label1.Text = "Bombs: " + bombsLeft;
                 }
                 else if (stage < 10)
                 {
@@ -261,7 +281,7 @@ namespace deathStar
                     bombX = bombX + 2;
                     bombY = bombY + 10;
                         stage++;
-                    reloading = false;
+                    bombReady = true;
                 }
                 if (bombY > 600) 
                 {
@@ -280,10 +300,13 @@ namespace deathStar
             else if (bombY + 5 > 400 && bombX < entranceHoleX - ventSize)
             {
                 fall = false;
+                bombReady = true;
+
             }
             else if (bombY + 5 > 400 && bombX > entranceHoleX)
             {
                 fall = false;
+                bombReady = true;
             }
 
             if (hit)
@@ -295,7 +318,6 @@ namespace deathStar
                 entranceHoleY = entranceHoleY - 10;
                 drawY = drawY - 10;
                 drawX = drawX + 2;
-                label2.Text = fallWatch.ElapsedMilliseconds + " ";
                 if (fallWatch.ElapsedMilliseconds > 5000)
                 {
                     fallWatch.Stop();
@@ -346,7 +368,6 @@ namespace deathStar
                         if (bombY + 10 > entranceHoleBottom + 100)
                     {
                         bottomTouch = true;
-                        floorBreak = true;
                     }
                 }
                 if (bottomTouch)
@@ -365,11 +386,13 @@ namespace deathStar
                 if (spaceDown)
                 {
                     boom = true;
+                    detonate = false;
                 }
             }
 
             if (boom)
             {
+                detonate = false;
                 explosionSize++;
                 if(explosionCounter == 1)
                 {
@@ -388,6 +411,28 @@ namespace deathStar
                     win = true;
                 }
             }
+            if (win)
+            {
+                playButton.Enabled = true;
+                playButton.Visible = true;
+                playButton.Text = "Play Again";
+
+                closeButton.Enabled = true;
+                closeButton.Visible = true;
+                closeButton.Text = "Quit game";
+                detonate = false;
+                
+            }
+            if (lose)
+            {
+                playButton.Enabled = true;
+                playButton.Visible = true;
+                playButton.Text = "Play Again";
+
+                closeButton.Enabled = true;
+                closeButton.Visible = true;
+                closeButton.Text = "Quit game";
+            }
             #endregion
             Refresh();
         }
@@ -400,64 +445,81 @@ namespace deathStar
             Pen medPen = new Pen(Color.Lime, 3);
             Pen thinPen = new Pen(Color.Lime, 2);
             Pen holePen = new Pen(Color.Black, 3);
-            Font wordFont = new Font("Arial", 10);
+            Font wordFont = new Font("Courier", 15);
+            Font titleFont = new Font("RaleWay", 25);
 
-            //print words
-            e.Graphics.DrawString(words, wordFont, drawBrush, 100, 100);
-
-            //drawing the scene
-            e.Graphics.DrawLine(thinPen, 0, trenchBottomY - 310, 1000, trenchBottomY - 310);
-            e.Graphics.DrawLine(medPen, 0, trenchBottomY - 300, 1000, trenchBottomY - 300);
-            e.Graphics.DrawLine(medPen, 0, trenchBottomY, 1000, trenchBottomY);
-
-            //drawing the ship 
-            e.Graphics.DrawLine(medPen, drawX, drawY, drawX - 40, drawY + 15);
-            e.Graphics.DrawLine(medPen, drawX , drawY + 30, drawX - 40, drawY + 15);
-            e.Graphics.DrawLine(medPen, drawX, drawY + 30, drawX , drawY);
-
-            //drawing the bomb
-            if (fall || hit || reactor)
+            
+            if (title != true)
             {
-                e.Graphics.DrawEllipse(medPen, bombX, bombY, 10, 10);
-            }
+                
 
-            //drawing aim help
-            e.Graphics.DrawEllipse(thinPen, drawX - 315, drawY + 322, 1, 1);
+                //drawing the scene
+                e.Graphics.DrawLine(thinPen, 0, trenchBottomY - 310, 1000, trenchBottomY - 310);
+                e.Graphics.DrawLine(medPen, 0, trenchBottomY - 300, 1000, trenchBottomY - 300);
+                e.Graphics.DrawLine(medPen, 0, trenchBottomY, 1000, trenchBottomY);
+                e.Graphics.DrawString("Bombs :" + bombsLeft, wordFont, drawBrush, 10, 10);
+
+                //drawing the ship 
+                e.Graphics.DrawLine(medPen, drawX, drawY, drawX - 40, drawY + 15);
+                e.Graphics.DrawLine(medPen, drawX , drawY + 30, drawX - 40, drawY + 15);
+                e.Graphics.DrawLine(medPen, drawX, drawY + 30, drawX , drawY);
+
+                //drawing the bomb
+                if (fall || hit || reactor)
+                {
+                    e.Graphics.DrawEllipse(medPen, bombX, bombY, 10, 10);
+                }
+
+                //drawing aim help
+                e.Graphics.DrawEllipse(thinPen, drawX - 315, drawY + 322, 1, 1);
             
 
-            //drawing vent to core
-            e.Graphics.DrawLine(holePen, entranceHoleX, entranceHoleY, entranceHoleX - ventSize, entranceHoleY);
+                //drawing vent to core
+                e.Graphics.DrawLine(holePen, entranceHoleX, entranceHoleY, entranceHoleX - ventSize, entranceHoleY);
 
-            //drawing vent wall
-            e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleY, entranceHoleX, entranceHoleBottom);
-            e.Graphics.DrawLine(medPen, entranceHoleX - ventSize, entranceHoleY, entranceHoleX - ventSize, entranceHoleBottom);
+                //drawing vent wall
+                e.Graphics.DrawLine(medPen, entranceHoleX, entranceHoleY, entranceHoleX, entranceHoleBottom);
+                e.Graphics.DrawLine(medPen, entranceHoleX - ventSize, entranceHoleY, entranceHoleX - ventSize, entranceHoleBottom);
 
-            //reactor
-            if (reactor)
-            {
-                e.Graphics.DrawArc(medPen, entranceHoleX - 150, entranceHoleBottom - 15, 200, 200, 300, 300);
-            }
+                //reactor
+                if (reactor)
+                {
+                    e.Graphics.DrawArc(medPen, entranceHoleX - 150, entranceHoleBottom - 15, 200, 200, 300, 300);
+                }
 
-            //death star
-            if(detonate)
-            {
-                e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
-                e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
-            }
-            if (boom)
-            {
-                e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
-                e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
+                //death star
+                if(detonate)
+                {
+                    e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
+                    e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
+                    e.Graphics.DrawString("Press Space to Detonate", titleFont, drawBrush, 300, 400);
+                }
+                if (boom)
+                {
+                    e.Graphics.DrawEllipse(medPen, 300, 100, 100, 100);
+                    e.Graphics.DrawEllipse(medPen, 350, 110, 30, 30);
                 
-                e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize -3 );
-                e.Graphics.DrawEllipse(medPen, explosionX, explosionY, explosionSize, explosionSize);
+                    e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize -3 );
+                    e.Graphics.DrawEllipse(medPen, explosionX, explosionY, explosionSize, explosionSize);
+                }
+                if (win)
+                {
+                    e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize - 3);
+                    e.Graphics.DrawString("You Win", titleFont, drawBrush, 400, 100);
+                }
+                if (lose)
+                {
+                    e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize - 3);
+                    e.Graphics.DrawString("You Lose", titleFont, drawBrush, 400, 100);
+                }
             }
-            if (win)
-            {
-                e.Graphics.FillEllipse(explosionBrush, explosionX, explosionY, explosionSize - 3, explosionSize - 3);
-                e.Graphics.DrawString("You Win", wordFont, drawBrush, 100, 100);
-            }
-                
+
+            //print words
+            e.Graphics.DrawString(words, wordFont, drawBrush, 50, 50);
+            e.Graphics.DrawString(titleName, titleFont, drawBrush, 350, 10);
+
+
+
 
             DoubleBuffered = true;
         }
